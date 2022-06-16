@@ -1,0 +1,16 @@
+# Package directories & files
+/node_modules
+/dist
+/.serverless
+*.tgz
+
+# IDE specific files
+.vscode
+
+# Coverage
+/coverage
+
+# Log files
+*.log
+
+variables.yml
