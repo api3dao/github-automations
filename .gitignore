@@ -13,4 +13,5 @@
 # Log files
 *.log
 
-variables.yml
+config/*.yml
+!config/*.example.yml

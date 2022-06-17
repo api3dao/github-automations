@@ -1,4 +1,4 @@
-service: github-board-slack-notifications
+service: github-board-integrations
 
 plugins:
   - serverless-plugin-typescript
@@ -16,10 +16,18 @@ provider:
   deploymentMethod: direct
 
 functions:
-  handler:
-    handler: src/handler.run
+  notifications:
+    handler: src/handlers/notifications.run
     url: true
     maximumRetryAttempts: 0
     timeout: 5
     memorySize: 128
-    environment: ${file(./variables.yml)}
+    environment: ${file(config/notifications.yml)}
+
+  pull-requests:
+    handler: src/handlers/pull-requests.run
+    url: true
+    maximumRetryAttempts: 0
+    timeout: 5
+    memorySize: 128
+    environment: ${file(config/pull-requests.yml)}

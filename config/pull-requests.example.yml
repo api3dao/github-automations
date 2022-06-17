@@ -1,0 +1,5 @@
+GITHUB_TOKEN: xxx
+GITHUB_PROJECT_ID: xxx
+GITHUB_PROJECT_STATUS_FIELD_GQL_ID: xxx
+# Better quote these as they might be wrongly recognized as numbers
+GITHUB_PROJECT_STATUS_INREVIEW_ID: 'xxx'

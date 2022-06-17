@@ -1,27 +1,7 @@
-import { GraphQLClient, gql } from 'graphql-request';
+import { gql } from 'graphql-request';
 import axios from 'axios';
-
-const GITHUB_GQL_API_ENDPOINT = 'https://api.github.com/graphql';
-
-const statuses = {
-  [process.env.GITHUB_PROJECT_STATUS_BACKLOG_ID!]: 'Backlog',
-  [process.env.GITHUB_PROJECT_STATUS_TODO_ID!]: 'TODO',
-  [process.env.GITHUB_PROJECT_STATUS_BLOCKED_ID!]: 'Blocked',
-  [process.env.GITHUB_PROJECT_STATUS_INPROGRESS_ID!]: 'In progress',
-  [process.env.GITHUB_PROJECT_STATUS_INREVIEW_ID!]: 'In review',
-  [process.env.GITHUB_PROJECT_STATUS_TESTING_ID!]: 'Testing',
-  [process.env.GITHUB_PROJECT_STATUS_DONE_ID!]: 'Done',
-};
-
-const graphQLClient = new GraphQLClient(GITHUB_GQL_API_ENDPOINT, {
-  headers: {
-    authorization: `token ${process.env.GITHUB_TOKEN}`,
-  },
-});
-
-const successResponse = () => ({
-  statusCode: 200,
-});
+import { STATUSES } from '../constants';
+import { graphQLClient, successResponse } from '../utils';
 
 export const run = async (event: AWSLambda.APIGatewayEvent) => {
   if (!event.body) {
@@ -33,6 +13,7 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
 
   const body = JSON.parse(event.body);
   if (body.action !== 'edited') return successResponse();
+  if (!body.projects_v2_item) return successResponse();
   if (
     body.changes?.field_value?.field_node_id &&
     body.changes.field_value.field_node_id !== process.env.GITHUB_PROJECT_STATUS_FIELD_EVENT_ID
@@ -78,7 +59,7 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
 
   const issue = {
     ...data.node,
-    status: statuses[statusField.value],
+    status: STATUSES[statusField.value],
     sender: {
       login: body.sender.login,
       url: body.sender.url,
