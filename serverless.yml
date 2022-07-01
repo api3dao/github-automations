@@ -3,14 +3,11 @@ service: github-board-integrations
 plugins:
   - serverless-plugin-typescript
 
-variablesResolutionMode: 20210326
-
 provider:
   name: aws
   region: us-east-1
   stage: dev
   runtime: nodejs14.x
-  lambdaHashingVersion: 20201221
   logRetentionInDays: 7
   architecture: arm64
   deploymentMethod: direct
@@ -31,3 +28,11 @@ functions:
     timeout: 5
     memorySize: 128
     environment: ${file(config/pull-requests.yml)}
+
+  tester:
+    handler: src/handlers/tester.run
+    url: true
+    maximumRetryAttempts: 0
+    timeout: 5
+    memorySize: 128
+    environment: ${file(config/tester.yml)}

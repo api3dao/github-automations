@@ -2,6 +2,7 @@
 /node_modules
 /dist
 /.serverless
+/.build
 *.tgz
 
 # IDE specific files
