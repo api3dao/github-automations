@@ -36,3 +36,11 @@ functions:
     timeout: 5
     memorySize: 128
     environment: ${file(config/tester.yml)}
+
+  documentation:
+    handler: src/handlers/documentation.run
+    url: true
+    maximumRetryAttempts: 0
+    timeout: 5
+    memorySize: 128
+    environment: ${file(config/documentation.yml)}
