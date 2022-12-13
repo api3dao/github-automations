@@ -21,7 +21,7 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
       ... on PullRequest {
         closingIssuesReferences(first: 20) {
           nodes {
-            projectNextItems(first: 1) {
+            projectItems(first: 1) {
               nodes {
                 id
               }
@@ -35,22 +35,24 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
 
   const data = await graphQLClient.request(query);
   const issueIds = data.node.closingIssuesReferences.nodes.map(
-    (projectNextIssue: any) => projectNextIssue.projectNextItems.nodes[0].id
+    (projectIssue: any) => projectIssue.projectItems.nodes[0].id
   );
 
   for (const issueId of issueIds) {
     const mutation = gql`
     mutation {
-      updateProjectNextItemField (
+      updateProjectV2ItemFieldValue (
         input: {
           projectId: "${process.env.GITHUB_PROJECT_ID}"
           itemId: "${issueId}"
           fieldId: "${process.env.GITHUB_PROJECT_STATUS_FIELD_GQL_ID}"
-          value: "${process.env.GITHUB_PROJECT_STATUS_INREVIEW_ID}"
+          value: {
+            singleSelectOptionId: "${process.env.GITHUB_PROJECT_STATUS_INREVIEW_ID}"
+          }
         }
       )
       {
-        projectNextItem {
+        projectV2Item {
           id
         }
       }

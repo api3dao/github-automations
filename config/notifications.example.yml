@@ -2,13 +2,5 @@ GITHUB_TOKEN: xxx
 GITHUB_PROJECT_ID: xxx
 # It's the same thing but dependeing on where you ask GitHub will use a different prefix for that ID...
 GITHUB_PROJECT_STATUS_FIELD_EVENT_ID: xxx
-GITHUB_PROJECT_STATUS_FIELD_GQL_ID: xxx
-# Better quote these as they might be wrongly recognized as numbers
-GITHUB_PROJECT_STATUS_BACKLOG_ID: 'xxx'
-GITHUB_PROJECT_STATUS_TODO_ID: 'xxx'
-GITHUB_PROJECT_STATUS_BLOCKED_ID: 'xxx'
-GITHUB_PROJECT_STATUS_INPROGRESS_ID: 'xxx'
-GITHUB_PROJECT_STATUS_INREVIEW_ID: 'xxx'
-GITHUB_PROJECT_STATUS_TESTING_ID: 'xxx'
-GITHUB_PROJECT_STATUS_DONE_ID: 'xxx'
+GITHUB_PROJECT_STATUS_FIELD_NAME: xxx
 SLACK_WEBHOOK_URL: 'http://slack.webhook.url'

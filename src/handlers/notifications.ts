@@ -1,6 +1,5 @@
 import { gql } from 'graphql-request';
 import axios from 'axios';
-import { STATUSES } from '../constants';
 import { graphQLClient, successResponse } from '../utils';
 
 export const run = async (event: AWSLambda.APIGatewayEvent) => {
@@ -33,14 +32,11 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
           nameWithOwner
           url
         }
-        projectNextItems(first: 1) {
+        projectItems(first: 1) {
           nodes {
-            fieldValues(first: 20) {
-              nodes {
-                projectField {
-                  id
-                }
-                value
+						fieldValueByName(name: "${process.env.GITHUB_PROJECT_STATUS_FIELD_NAME}") {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name
               }
             }
           }
@@ -51,15 +47,11 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
   `;
 
   const data = await graphQLClient.request(query);
-
-  const fields = data.node.projectNextItems.nodes[0].fieldValues.nodes;
-  const statusField = fields.find(
-    (field: any) => field.projectField.id === process.env.GITHUB_PROJECT_STATUS_FIELD_GQL_ID
-  );
+  const status = data.node.projectItems.nodes[0].fieldValueByName.name;
 
   const issue = {
     ...data.node,
-    status: STATUSES[statusField.value],
+    status,
     sender: {
       login: body.sender.login,
       url: body.sender.url,
