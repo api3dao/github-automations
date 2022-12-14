@@ -38,8 +38,57 @@ const createDocsIssue = async (issue: any) => {
     }
   }
   `;
+  const docsIssueId = (await graphQLClient.request(addIssueToProjectMutation)).addProjectV2ItemById.item.id;
 
-  await graphQLClient.request(addIssueToProjectMutation);
+  const statusQuery = gql`
+  query {
+    node(id: "${issue.node_id}") {
+      ... on Issue {
+        projectItems(first: 1) {
+          nodes {
+						fieldValueByName(name: "${process.env.GITHUB_PROJECT_STATUS_FIELD_NAME}") {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                optionId
+                field {
+                  ... on ProjectV2SingleSelectField {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  `;
+  const data = await graphQLClient.request(statusQuery);
+  const statusFieldId = data.node.projectItems.nodes[0].fieldValueByName.field.id;
+  const statusId = data.node.projectItems.nodes[0].fieldValueByName.optionId;
+
+  if (statusId !== process.env.GITHUB_PROJECT_STATUS_BACKLOG_ID) {
+    const updateStatusMutation = gql`
+    mutation {
+      updateProjectV2ItemFieldValue (
+        input: {
+          projectId: "${process.env.GITHUB_PROJECT_ID}"
+          itemId: "${docsIssueId}"
+          fieldId: "${statusFieldId}"
+          value: {
+            singleSelectOptionId: "${process.env.GITHUB_PROJECT_STATUS_TODO_ID}"
+          }
+        }
+      )
+      {
+        projectV2Item {
+          id
+        }
+      }
+    }
+    `;
+
+    await graphQLClient.request(updateStatusMutation);
+  }
 };
 
 const updateDocsIssueAssignees = async (assignees: any, docsIssueId: string) => {
@@ -64,7 +113,7 @@ const updateDocsIssueAssignees = async (assignees: any, docsIssueId: string) => 
 const findDocsIssueByTitle = async (title: string): Promise<string | undefined> => {
   const docsIssueQuery = gql`
   query {
-    search(query: "repo:${process.env.GITHUB_DOCUMENTATION_REPO_NAME} in:title ${title}", type: ISSUE, first: 1) {
+    search(query: "repo:${process.env.GITHUB_DOCUMENTATION_REPO_NAME} in:title \"${title}\"", type: ISSUE, first: 1) {
       edges {
         node {
           ... on Issue {
@@ -91,7 +140,7 @@ const handleNewLabel = async (ghEvent: any) => {
     return successResponse();
   }
 
-  createDocsIssue(issue);
+  await createDocsIssue(issue);
 
   return successResponse();
 };
@@ -124,8 +173,8 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
 
   const body = JSON.parse(event.body);
   if (!body.issue) return successResponse();
-  if (body.action === 'labeled') return handleNewLabel(body);
-  if (['assigned', 'unassigned'].includes(body.action)) return handleNewAssignee(body);
+  if (body.action === 'labeled') return await handleNewLabel(body);
+  if (['assigned', 'unassigned'].includes(body.action)) return await handleNewAssignee(body);
 
   return successResponse();
 };
