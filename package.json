@@ -24,10 +24,12 @@
   "dependencies": {
     "axios": "^0.27.2",
     "graphql": "^16.5.0",
-    "graphql-request": "^4.3.0"
+    "graphql-request": "^4.3.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.92",
+    "@types/lodash": "^4.14.191",
     "@types/node": "^17.0.21",
     "@types/serverless": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.14.0",

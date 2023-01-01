@@ -44,3 +44,11 @@ functions:
     timeout: 5
     memorySize: 128
     environment: ${file(config/documentation.yml)}
+
+  milestone:
+    handler: src/handlers/milestone.run
+    url: true
+    maximumRetryAttempts: 0
+    timeout: 20
+    memorySize: 128
+    environment: ${file(config/milestone.yml)}
