@@ -29,13 +29,13 @@ functions:
     memorySize: 128
     environment: ${file(config/pull-requests.yml)}
 
-  tester:
-    handler: src/handlers/tester.run
-    url: true
-    maximumRetryAttempts: 0
-    timeout: 5
-    memorySize: 128
-    environment: ${file(config/tester.yml)}
+  # tester:
+  #   handler: src/handlers/tester.run
+  #   url: true
+  #   maximumRetryAttempts: 0
+  #   timeout: 5
+  #   memorySize: 128
+  #   environment: ${file(config/tester.yml)}
 
   documentation:
     handler: src/handlers/documentation.run
