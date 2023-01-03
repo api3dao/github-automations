@@ -1,5 +1,4 @@
 GITHUB_TOKEN: xxx
-GITHUB_PROJECT_ID: xxx
 # It's the same thing but dependeing on where you ask GitHub will use a different prefix for that ID...
 GITHUB_PROJECT_STATUS_FIELD_EVENT_ID: xxx
 GITHUB_PROJECT_STATUS_FIELD_NAME: xxx
