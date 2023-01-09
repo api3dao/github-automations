@@ -1,9 +1,12 @@
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 import { gql } from 'graphql-request';
 import { graphQLClient, successResponse } from '../utils';
 
 const TRACKER_ISSUE_NAME = 'Documentation tracker';
 const TRACKER_ISSUE_NO_ISSUES_DESCRIPTION = 'No documentation issues in this milestone.';
+const DOCUMENTATION_ISSUE_BODY_REGEX = new RegExp(
+  `^Documentation for (https://github\\.com/${process.env.GITHUB_AIRNODE_REPO_NAME}/issues/[0-9]+)$`
+);
 
 const trackerIssueNameForMilestone = (milestoneTitle: string) => `${TRACKER_ISSUE_NAME} - v${milestoneTitle}`;
 
@@ -183,6 +186,30 @@ ${
   return successResponse();
 };
 
+const handleDocsIssueCreated = async (issue: any) => {
+  const matched = issue.body.match(DOCUMENTATION_ISSUE_BODY_REGEX);
+  if (!matched) return successResponse();
+
+  // The group
+  const airnodeIssueUrl = matched[1];
+  const airnodeIssueQuery = gql`
+  {
+    resource(url: "${airnodeIssueUrl}") {
+      ... on Issue {
+        milestone {
+          title
+        }
+      }
+    }
+  }
+  `;
+
+  const milestoneTitle = (await graphQLClient.request(airnodeIssueQuery)).resource?.milestone?.title;
+  if (!milestoneTitle) return successResponse();
+
+  return await handleTrackerIssueUpdate({ title: milestoneTitle });
+};
+
 export const run = async (event: AWSLambda.APIGatewayEvent) => {
   if (!event.body) {
     return {
@@ -200,6 +227,12 @@ export const run = async (event: AWSLambda.APIGatewayEvent) => {
       ['milestoned', 'demilestoned'].includes(body.action))
   )
     return await handleTrackerIssueUpdate(body.milestone || body.issue.milestone);
+  if (
+    body.issue &&
+    body.action === 'opened' &&
+    body.repository.full_name === process.env.GITHUB_DOCUMENTATION_REPO_NAME
+  )
+    return await handleDocsIssueCreated(body.issue);
 
   return successResponse();
 };
