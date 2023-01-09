@@ -46,6 +46,7 @@ const getMilestoneDocsIssues = async (milestone: any) => {
           ... on Issue {
             title
             url
+            closed
           }
         }
       }
@@ -56,6 +57,7 @@ const getMilestoneDocsIssues = async (milestone: any) => {
   return (await graphQLClient.request(milestoneIssuesQuery)).search.edges.map((edge: any) => ({
     title: edge.node.title,
     url: edge.node.url,
+    closed: edge.node.closed,
   }));
 };
 
@@ -67,6 +69,7 @@ const getDocsIssue = async (title: string) => {
         node {
           ... on Issue {
             url
+            closed
           }
         }
       }
@@ -74,7 +77,22 @@ const getDocsIssue = async (title: string) => {
   }
   `;
 
-  return (await graphQLClient.request(docsIssueQuery)).search.edges[0]?.node?.url;
+  const resp = await graphQLClient.request(docsIssueQuery);
+
+  const edge = resp.search.edges[0];
+  if (!edge) return null;
+
+  const node = edge.node;
+  if (isEmpty(node))
+    return {
+      url: `${title} (Missing some GitHub data, check manually)`,
+      closed: false,
+    };
+
+  return {
+    url: node.url,
+    closed: node.closed,
+  };
 };
 
 const getTrackerIssue = async (milestone: any) => {
@@ -124,33 +142,33 @@ const handleTrackerIssueUpdate = async (milestone: any) => {
 
   let newTrackerIssueBody = TRACKER_ISSUE_NO_ISSUES_DESCRIPTION;
   if (!_.isEmpty(milestoneDocsIssues)) {
-    const docsIssues: string[] = [];
+    const docsIssues = [];
     const milestoneMissingDocsIssues = [];
     for (const milestoneDocsIssue of milestoneDocsIssues) {
-      const docsIssueUrl = await getDocsIssue(milestoneDocsIssue.title);
+      const docsIssue = await getDocsIssue(milestoneDocsIssue.title);
 
-      if (!docsIssueUrl) {
+      if (!docsIssue) {
         milestoneMissingDocsIssues.push(milestoneDocsIssue);
         continue;
       }
 
-      docsIssues.push(docsIssueUrl);
+      docsIssues.push(docsIssue);
     }
 
     newTrackerIssueBody = `
 Airnode issues that need documentation:
 ${_.difference(milestoneDocsIssues, milestoneMissingDocsIssues)
-  .map((issue) => `- [ ] ${issue.url}`)
+  .map((issue) => `- [${issue.closed ? 'x' : ' '}] ${issue.url}`)
   .join(`\n`)}
 
 Corresponding docuemntation issues:
-${docsIssues.map((issueUrl: string) => `- [ ] ${issueUrl}`).join(`\n`)}
+${docsIssues.map((issue) => `- [${issue.closed ? 'x' : ' '}] ${issue.url}`).join(`\n`)}
 
 ${
   _.isEmpty(milestoneMissingDocsIssues)
     ? ''
     : `**Airnode issues that need documentation but don't have a correspoding documentation issue:**\n${milestoneMissingDocsIssues
-        .map((issue) => `- [ ] ${issue.url}`)
+        .map((issue) => `- [${issue.closed ? 'x' : ' '}] ${issue.url}`)
         .join(`\n`)}`
 }
 `.trim();
