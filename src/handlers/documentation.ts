@@ -113,7 +113,7 @@ const updateDocsIssueAssignees = async (assignees: any, docsIssueId: string) => 
 const findDocsIssueByTitle = async (title: string): Promise<string | undefined> => {
   const docsIssueQuery = gql`
   query {
-    search(query: "repo:${process.env.GITHUB_DOCUMENTATION_REPO_NAME} in:title \"${title}\"", type: ISSUE, first: 1) {
+    search(query: "repo:${process.env.GITHUB_DOCUMENTATION_REPO_NAME} in:title \\"${title}\\"", type: ISSUE, first: 1) {
       edges {
         node {
           ... on Issue {
